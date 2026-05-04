@@ -17,12 +17,29 @@ export function attachOverlay(video: HTMLVideoElement): void {
   overlayEl.appendChild(controlsEl);
   overlayEl.appendChild(progressBarEl);
 
+  // IntersectionObserver respects overflow:hidden on ancestor elements, so it correctly
+  // detects when a video has slid out of the story container's clipping region.
+  // getBoundingClientRect does not account for clipping, so it can't do this.
+  let videoVisible = false;
+  const intersectionObserver = new IntersectionObserver(
+    (entries) => {
+      videoVisible = (entries[0]?.intersectionRatio ?? 0) > 0.1;
+      if (!videoVisible) {
+        overlayEl.style.display = "none";
+        overlayEl.removeAttribute("data-instascrub-hover");
+      }
+    },
+    { threshold: [0, 0.1] }
+  );
+  intersectionObserver.observe(video);
+
   // Sync overlay position to video rect every frame. Using position:fixed + body
   // avoids all stacking context issues with Instagram's own player div (which sits
   // as a sibling outside our container and would otherwise intercept pointer events).
   function syncPosition(): void {
-    if (!video.isConnected) return;
+    if (!video.isConnected || !videoVisible) return;
     const rect = video.getBoundingClientRect();
+    overlayEl.style.display = "";
     overlayEl.style.left = `${rect.left}px`;
     overlayEl.style.top = `${rect.top}px`;
     overlayEl.style.width = `${rect.width}px`;
@@ -57,6 +74,7 @@ export function attachOverlay(video: HTMLVideoElement): void {
     overlayEl,
     cleanup: () => {
       cleanupControls();
+      intersectionObserver.disconnect();
       document.removeEventListener("mouseover", onDocMouseOver, { capture: true });
       overlayEl.remove();
     },
