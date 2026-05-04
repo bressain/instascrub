@@ -1,0 +1,13 @@
+{
+  "name": "instascrub",
+  "private": true,
+  "scripts": {
+    "build": "vite build",
+    "watch": "vite build --watch"
+  },
+  "devDependencies": {
+    "@types/firefox-webext-browser": "^143.0.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.3"
+  }
+}
