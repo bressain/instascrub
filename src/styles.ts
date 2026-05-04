@@ -1,9 +1,8 @@
 const CSS = `
   [data-instascrub] {
-    position: absolute;
-    inset: 0;
+    position: fixed;
     pointer-events: none;
-    z-index: 9999;
+    z-index: 2147483647;
   }
 
   .is-controls {

@@ -2,32 +2,13 @@ import { buildControls, wireControls } from "./controls";
 
 interface AttachedOverlay {
   overlayEl: HTMLDivElement;
-  container: HTMLElement;
   cleanup: () => void;
 }
 
 const overlayMap = new Map<HTMLVideoElement, AttachedOverlay>();
 
-function findPositioningContainer(video: HTMLVideoElement): HTMLElement {
-  let el: HTMLElement | null = video.parentElement;
-  let depth = 0;
-  while (el && depth < 6) {
-    const pos = getComputedStyle(el).position;
-    if (pos === "relative" || pos === "absolute" || pos === "fixed" || pos === "sticky") {
-      return el;
-    }
-    el = el.parentElement;
-    depth++;
-  }
-  const parent = video.parentElement ?? document.body;
-  parent.style.position = "relative";
-  return parent;
-}
-
 export function attachOverlay(video: HTMLVideoElement): void {
   if (overlayMap.has(video)) return;
-
-  const container = findPositioningContainer(video);
 
   const overlayEl = document.createElement("div");
   overlayEl.setAttribute("data-instascrub", "");
@@ -36,30 +17,47 @@ export function attachOverlay(video: HTMLVideoElement): void {
   overlayEl.appendChild(controlsEl);
   overlayEl.appendChild(progressBarEl);
 
-  const cleanupControls = wireControls(video, elements);
-
-  // mouseover/mouseout bubble through Instagram's overlaid elements; mouseenter/mouseleave don't
-  function onMouseOver(): void {
-    overlayEl.setAttribute("data-instascrub-hover", "");
+  // Sync overlay position to video rect every frame. Using position:fixed + body
+  // avoids all stacking context issues with Instagram's own player div (which sits
+  // as a sibling outside our container and would otherwise intercept pointer events).
+  function syncPosition(): void {
+    if (!video.isConnected) return;
+    const rect = video.getBoundingClientRect();
+    overlayEl.style.left = `${rect.left}px`;
+    overlayEl.style.top = `${rect.top}px`;
+    overlayEl.style.width = `${rect.width}px`;
+    overlayEl.style.height = `${rect.height}px`;
   }
-  function onMouseOut(e: MouseEvent): void {
-    if (!container.contains(e.relatedTarget as Node | null)) {
+
+  syncPosition();
+
+  const cleanupControls = wireControls(video, elements, syncPosition);
+
+  // Instagram renders a sibling "Video player" div (data-instancekey) that absorbs all
+  // pointer events. Document capture + getBoundingClientRect bypasses the stacking issue.
+  function onDocMouseOver(e: MouseEvent): void {
+    if (!video.isConnected) return;
+    const rect = video.getBoundingClientRect();
+    const over =
+      e.clientX >= rect.left &&
+      e.clientX <= rect.right &&
+      e.clientY >= rect.top &&
+      e.clientY <= rect.bottom;
+    if (over) {
+      overlayEl.setAttribute("data-instascrub-hover", "");
+    } else {
       overlayEl.removeAttribute("data-instascrub-hover");
     }
   }
 
-  container.addEventListener("mouseover", onMouseOver);
-  container.addEventListener("mouseout", onMouseOut);
-
-  container.appendChild(overlayEl);
+  document.addEventListener("mouseover", onDocMouseOver, { capture: true });
+  document.body.appendChild(overlayEl);
 
   overlayMap.set(video, {
     overlayEl,
-    container,
     cleanup: () => {
       cleanupControls();
-      container.removeEventListener("mouseover", onMouseOver);
-      container.removeEventListener("mouseout", onMouseOut);
+      document.removeEventListener("mouseover", onDocMouseOver, { capture: true });
       overlayEl.remove();
     },
   });

@@ -47,7 +47,7 @@ export function buildControls(): { controlsEl: HTMLElement; progressBarEl: HTMLE
   return { controlsEl, progressBarEl, elements: { playPause, scrubber, speedButtons, progressFill } };
 }
 
-export function wireControls(video: HTMLVideoElement, elements: ControlElements): () => void {
+export function wireControls(video: HTMLVideoElement, elements: ControlElements, onTick?: () => void): () => void {
   const { playPause, scrubber, speedButtons, progressFill } = elements;
   let isScrubbing = false;
 
@@ -65,6 +65,7 @@ export function wireControls(video: HTMLVideoElement, elements: ControlElements)
   let rafId: number;
   function tick(): void {
     updateProgress();
+    onTick?.();
     rafId = requestAnimationFrame(tick);
   }
   rafId = requestAnimationFrame(tick);
