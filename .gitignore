@@ -1,2 +1,5 @@
 node_modules/
 dist/
+.idea/
+*.tsbuildinfo
+pnpm-debug.log*

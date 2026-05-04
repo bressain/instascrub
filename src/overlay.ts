@@ -38,15 +38,18 @@ export function attachOverlay(video: HTMLVideoElement): void {
 
   const cleanupControls = wireControls(video, elements);
 
-  function onMouseEnter(): void {
+  // mouseover/mouseout bubble through Instagram's overlaid elements; mouseenter/mouseleave don't
+  function onMouseOver(): void {
     overlayEl.setAttribute("data-instascrub-hover", "");
   }
-  function onMouseLeave(): void {
-    overlayEl.removeAttribute("data-instascrub-hover");
+  function onMouseOut(e: MouseEvent): void {
+    if (!container.contains(e.relatedTarget as Node | null)) {
+      overlayEl.removeAttribute("data-instascrub-hover");
+    }
   }
 
-  container.addEventListener("mouseenter", onMouseEnter);
-  container.addEventListener("mouseleave", onMouseLeave);
+  container.addEventListener("mouseover", onMouseOver);
+  container.addEventListener("mouseout", onMouseOut);
 
   container.appendChild(overlayEl);
 
@@ -55,8 +58,8 @@ export function attachOverlay(video: HTMLVideoElement): void {
     container,
     cleanup: () => {
       cleanupControls();
-      container.removeEventListener("mouseenter", onMouseEnter);
-      container.removeEventListener("mouseleave", onMouseLeave);
+      container.removeEventListener("mouseover", onMouseOver);
+      container.removeEventListener("mouseout", onMouseOut);
       overlayEl.remove();
     },
   });
