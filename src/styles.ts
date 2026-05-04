@@ -22,6 +22,11 @@ const CSS = `
 
   [data-instascrub-hover] .is-controls {
     opacity: 1;
+    bottom: 0;
+  }
+
+  [data-instascrub-hover] .is-progress-bar {
+    display: none;
   }
 
   .is-play-pause {
