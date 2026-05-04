@@ -22,8 +22,12 @@ function processNode(node: Node): void {
 function removeNode(node: Node): void {
   if (node instanceof HTMLVideoElement) {
     detachOverlay(node);
+    managedVideos.delete(node);
   } else if (node instanceof Element) {
-    node.querySelectorAll("video").forEach(detachOverlay);
+    node.querySelectorAll("video").forEach((v) => {
+      detachOverlay(v);
+      managedVideos.delete(v);
+    });
   }
 }
 
