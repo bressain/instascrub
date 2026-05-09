@@ -39,6 +39,17 @@ export function attachOverlay(video: HTMLVideoElement): void {
   function syncPosition(): void {
     if (!video.isConnected || !videoVisible) return;
     const rect = video.getBoundingClientRect();
+    // Hide the overlay if the video's center point is outside the viewport.
+    // IntersectionObserver only checks geometric overlap — a video scrolled mostly
+    // above the viewport (e.g. a feed video behind Reels fullscreen) can still have
+    // its bottom edge clip into the viewport, keeping intersectionRatio > 0. The
+    // center-point check ensures we don't show a phantom scrubber in that case.
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    if (cx < 0 || cx > window.innerWidth || cy < 0 || cy > window.innerHeight) {
+      overlayEl.style.display = "none";
+      return;
+    }
     overlayEl.style.display = "";
     overlayEl.style.left = `${rect.left}px`;
     overlayEl.style.top = `${rect.top}px`;

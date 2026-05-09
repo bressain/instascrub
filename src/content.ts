@@ -31,6 +31,11 @@ function removeNode(node: Node): void {
   }
 }
 
+function updateModalState(): void {
+  const hasModal = !!document.querySelector('[role="dialog"][aria-modal="true"]');
+  document.body.classList.toggle("is-modal-open", hasModal);
+}
+
 function init(): void {
   injectStyles();
 
@@ -41,6 +46,7 @@ function init(): void {
       mutation.addedNodes.forEach(processNode);
       mutation.removedNodes.forEach(removeNode);
     }
+    updateModalState();
   });
 
   observer.observe(document.body, {
