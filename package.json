@@ -1,7 +1,7 @@
 {
   "name": "instascrub",
-  "private": true,
   "packageManager": "pnpm@10.15.1",
+  "version": "0.1.0",
   "scripts": {
     "build": "vite build",
     "watch": "vite build --watch",

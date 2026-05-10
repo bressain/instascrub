@@ -1,12 +1,15 @@
 {
   "manifest_version": 3,
   "name": "instascrub",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Video controls overlay for Instagram",
   "browser_specific_settings": {
     "gecko": {
-      "id": "instascrub@local",
-      "strict_min_version": "109.0"
+      "id": "{978db746-1202-42c7-86d6-f31afbe90fee}",
+      "strict_min_version": "142.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
     }
   },
   "content_scripts": [
@@ -16,5 +19,11 @@
       "run_at": "document_idle"
     }
   ],
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png",
+    "128": "icons/icon-128.png"
+  },
   "permissions": []
 }

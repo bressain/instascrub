@@ -3,3 +3,4 @@ dist/
 .idea/
 *.tsbuildinfo
 pnpm-debug.log*
+.DS_Store
